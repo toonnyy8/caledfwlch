@@ -1,0 +1,29 @@
+{
+  "name": "caledfwlch",
+  "version": "1.0.0",
+  "description": "game",
+  "main": "index.js",
+  "dependencies": {
+    "core-js": "^3.6.3",
+    "parcel": "^1.12.4",
+    "regenerator-runtime": "^0.13.3"
+  },
+  "devDependencies": {
+    "typescript": "^3.7.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "parcel index.html -p 8080 --open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toonnyy8/caledfwlch.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/toonnyy8/caledfwlch/issues"
+  },
+  "homepage": "https://github.com/toonnyy8/caledfwlch#readme"
+}
