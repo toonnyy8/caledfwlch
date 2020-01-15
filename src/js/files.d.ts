@@ -1,2 +1,9 @@
-export let actor: ArrayBuffer
-export let excalibur: ArrayBuffer
+export let glb: {
+    excalibur: ArrayBuffer
+}
+export let glsl: {
+    main: {
+        vert: string,
+        frag: string
+    }
+}
