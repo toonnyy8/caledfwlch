@@ -1,10 +1,14 @@
 import "core-js/stable"
 import "regenerator-runtime/runtime"
 import { glb } from "./glb"
-import { actor, excalibur } from "../js/file"
+import * as files from "../js/files"
 
-console.log(glb(actor))
-console.log(glb(excalibur))
+let objs = Object.keys(files).reduce((acc: object, curr: string) => {
+    acc[curr] = glb(files[curr])
+    return acc
+}, {})
+
+console.log(objs)
 
 {
     (gl: WebGL2RenderingContext) => {
