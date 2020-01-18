@@ -1,7 +1,8 @@
 import "core-js/stable"
 import "regenerator-runtime/runtime"
 import * as glm from "gl-matrix"
-import { glbDecoder, createShaderProgram, GLTF } from "./gltool"
+import { createShaderProgram } from "./gltool"
+import { GLTFile, glbDecoder } from "./gltf"
 import * as files from "../js/files"
 
 
@@ -16,7 +17,7 @@ console.log(
             [0, 10, 0]
         )
 )
-let objs: { [key: string]: GLTF } = Object.keys(files.glb).reduce((acc: object, curr: string) => {
+let objs: { [key: string]: GLTFile } = Object.keys(files.glb).reduce((acc: object, curr: string) => {
     acc[curr] = glbDecoder(files.glb[curr])
     return acc
 }, {})
@@ -164,3 +165,8 @@ gl.clear(gl.COLOR_BUFFER_BIT)
         }
     })(gl)
 }
+// let time=0
+// let loop=()=>{
+//     requestAnimationFrame(loop)
+// objs["excalibur"].json.animations[0].samplers[0].input
+// }
