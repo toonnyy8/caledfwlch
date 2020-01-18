@@ -110,7 +110,6 @@ export let compileShader = (gl: WebGL2RenderingContext, type: number, source: st
 
 
 export let createShaderProgram = (gl: WebGL2RenderingContext, vsSource: string, fsSource: string) => {
-
     const vertexShader: WebGLShader = compileShader(gl, gl.VERTEX_SHADER, vsSource);
     const fragmentShader: WebGLShader = compileShader(gl, gl.FRAGMENT_SHADER, fsSource);
 

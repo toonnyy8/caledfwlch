@@ -1,18 +1,29 @@
 #version 300 es
 
-layout (location = 0) in vec3 in_Position;
-// layout (location = 1) in vec3 in_Normal;
+// 物件預設頂點位置
+layout (location = 0) in vec3 v_Position;
+// 物件預設法向量
+// layout (location = 1) in vec3 v_Normal;
 
-// uniform mat4 uf_Posture;
-// uniform mat4 uf_Projection;
-// uniform mat4 uf_Camera;
+// layout (location = 2) in vec4 v_Color;
 
-// out vec3 out_Position;
-// out vec3 out_Normal;
+// 物件姿態矩陣
+// uniform mat4 u_Posture;
+// 鏡頭焦距
+uniform mat4 u_Projection;
+// 鏡頭姿態矩陣
+uniform mat4 u_Camera;
+
+// 物件轉換後的頂點位置
+// out vec3 f_Position;
+// 物件轉換後的法向量
+// out vec3 f_Normal;
+// out vec4 f_Color;
 
 void main(){
-    // gl_Position = uf_Projection * uf_Camera * uf_Posture * vec4(in_Position, 1);
-    // out_Position = vec3(uf_Posture* vec4(in_Position, 1.0));
-    // out_Normal = mat3(transpose(inverse(uf_Posture))) * in_Normal;
-    gl_Position=vec4(in_Position, 1);
+    // gl_Position = u_Projection * u_Camera * u_Posture * vec4(v_Position, 1);
+    // f_Position = vec3(u_Posture* vec4(v_Position, 1.0));
+    // f_Normal = mat3(transpose(inverse(u_Posture))) * v_Normal;
+    gl_Position = u_Projection * u_Camera * vec4(v_Position, 1);
+    // f_Color = v_Color;
 }
