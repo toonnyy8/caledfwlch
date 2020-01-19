@@ -48,6 +48,7 @@ export interface GLTFile {
         }>,
         accessors: Array<{
             bufferView: number,
+            byteOffset?: number,
             componentType: number,
             count: number,
             max?: Array<number>,
@@ -67,27 +68,75 @@ export interface GLTFile {
 }
 
 export class GLTF {
-    constructor(gl: WebGL2RenderingContext, gltfile: GLTFile) {
-        this.gltfile = gltfile
+    constructor(gltfile: GLTFile) {
+        let _accessors = gltfile.json.accessors.map((accessor, accessorNum) => {
+            return new Accessor(gltfile, accessorNum)
+        })
+        this.asset = JSON.parse(
+            JSON.stringify(
+                gltfile.json.asset
+            )
+        )
+        this.scene = gltfile.json.scene
+        this.scenes = JSON.parse(
+            JSON.stringify(
+                gltfile.json.scenes
+            )
+        )
+        this.nodes = JSON.parse(
+            JSON.stringify(
+                gltfile.json.nodes
+            )
+        )
 
-        this.meshes
+        if (gltfile.json.animations) {
+            this.animations = gltfile.json.animations.map(animation => {
+                return new Animation(animation, _accessors)
+            })
+        }
+
+        this.materials = JSON.parse(
+            JSON.stringify(
+                gltfile.json.materials
+            )
+        )
+        if (gltfile.json.meshes) {
+            this.meshes = gltfile.json.meshes.map(mesh => {
+                return new Mesh(mesh, _accessors)
+            })
+        }
+        this.accessors = _accessors
+        this.gltfile = gltfile
     }
 
     gltfile: GLTFile
 
+    asset: { generator: string, version: string }
+    scene: number
+    scenes: Array<{
+        name: string
+        nodes: Array<number>
+    }>
+    nodes: Array<{
+        children?: Array<number>
+        mesh: number
+        name: string,
+        scale?: [number, number, number]
+        translation?: [number, number, number]
+        rotation?: [number, number, number, number]
+    }>
+    animations: Array<Animation>
+    materials: Array<{
+        doubleSided: boolean,
+        name: string,
+        pbrMetallicRoughness: {
+            baseColorFactor: [number, number, number, number],
+            metallicFactor: number,
+            roughnessFactor: number,
+        }
+    }>
     meshes: Array<Mesh>
-}
-
-class Node {
-    constructor(gltfile: GLTFile, nodeNum: number) {
-
-    }
-    children?: Array<number>
-    mesh: number
-    name: string
-    scale?: [number, number, number]
-    translation?: [number, number, number]
-    rotation?: [number, number, number, number]
+    accessors: Array<Accessor>
 }
 
 class Accessor {
@@ -98,6 +147,47 @@ class Accessor {
 
         this.componentType = gltfile.json.accessors[accessorNum].componentType
 
+        this.byteOffset = gltfile.json.accessors[accessorNum].byteOffset
+
+        this.count = gltfile.json.accessors[accessorNum].count
+
+        this.max = gltfile.json.accessors[accessorNum].max
+
+        this.min = gltfile.json.accessors[accessorNum].min
+
+        this.type = gltfile.json.accessors[accessorNum].type
+
+        switch (this.type) {
+            case "SCALAR": {
+                this.size = 1
+                break
+            }
+            case "VEC2": {
+                this.size = 2
+                break
+            }
+            case "VEC3": {
+                this.size = 3
+                break
+            }
+            case "VEC4": {
+                this.size = 4
+                break
+            }
+            case "MAT2": {
+                this.size = 4
+                break
+            }
+            case "MAT3": {
+                this.size = 9
+                break
+            }
+            case "MAT4": {
+                this.size = 16
+                break
+            }
+        }
+
         switch (gltfile.json.accessors[accessorNum].componentType) {
             case 5123: {
                 this.buffer = new Uint16Array(
@@ -105,7 +195,11 @@ class Accessor {
                         bufferView.byteOffset,
                         bufferView.byteOffset +
                         bufferView.byteLength
-                    ).buffer
+                    )
+                        .slice(
+                            gltfile.json.accessors[accessorNum].byteOffset,
+                            this.size * this.count * 4
+                        ).buffer
                 )
                 break
             }
@@ -121,35 +215,43 @@ class Accessor {
             }
         }
 
-        this.count = gltfile.json.accessors[accessorNum].count
-
-        this.max = gltfile.json.accessors[accessorNum].max
-
-        this.min = gltfile.json.accessors[accessorNum].min
-
-        this.type = gltfile.json.accessors[accessorNum].type
     }
     buffer: Float32Array | Uint16Array
     componentType: number
+    byteOffset?: number
     count: number
     max?: Array<number>
     min?: Array<number>
     type: string
+    size: number
 }
 
 class Mesh {
-    constructor(gltfile: GLTFile, meshNum: number) {
-        this.name = gltfile.json.meshes[meshNum].name
-        this.primitives = gltfile.json.meshes[meshNum].primitives.map((primitive) => {
+    constructor({ name, primitives }: {
+        name: string
+        primitives: Array<{
+            attributes: {
+                POSITION: number
+                NORMAL: number
+                TEXCOORD_0: number
+                JOINTS_0: number
+                WEIGHTS_0: number
+            }
+            indices: number
+            material: number
+        }>
+    }, accessors: Array<Accessor>) {
+        this.name = name
+        this.primitives = primitives.map((primitive) => {
             return {
                 attributes: {
-                    POSITION: new Accessor(gltfile, primitive.attributes.POSITION),
-                    NORMAL: new Accessor(gltfile, primitive.attributes.NORMAL),
-                    TEXCOORD_0: new Accessor(gltfile, primitive.attributes.TEXCOORD_0),
-                    JOINTS_0: new Accessor(gltfile, primitive.attributes.JOINTS_0),
-                    WEIGHTS_0: new Accessor(gltfile, primitive.attributes.WEIGHTS_0),
+                    POSITION: accessors[primitive.attributes.POSITION],
+                    NORMAL: accessors[primitive.attributes.NORMAL],
+                    TEXCOORD_0: accessors[primitive.attributes.TEXCOORD_0],
+                    JOINTS_0: accessors[primitive.attributes.JOINTS_0],
+                    WEIGHTS_0: accessors[primitive.attributes.WEIGHTS_0]
                 },
-                indices: new Accessor(gltfile, primitive.indices),
+                indices: accessors[primitive.indices],
                 material: primitive.material
             }
         })
@@ -157,15 +259,92 @@ class Mesh {
     name: string
     primitives: Array<{
         attributes: {
-            POSITION: Accessor,
-            NORMAL: Accessor,
-            TEXCOORD_0: Accessor,
-            JOINTS_0: Accessor,
+            POSITION: Accessor
+            NORMAL: Accessor
+            TEXCOORD_0: Accessor
+            JOINTS_0: Accessor
             WEIGHTS_0: Accessor
         }
         indices: Accessor
         material: number
     }>
+}
+
+class Channel {
+    constructor(
+        {
+            sampler,
+            target
+        }: {
+            sampler: number
+            target: {
+                node: number
+                path: string
+            }
+        }, samplers: Array<Sampler>
+    ) {
+        this.sampler = samplers[sampler]
+        this.target = {
+            node: target.node,
+            path: target.path
+        }
+    }
+    sampler: Sampler
+    target: {
+        node: number
+        path: string
+    }
+}
+
+class Sampler {
+    constructor({
+        input,
+        interpolation,
+        output
+    }: {
+        input: number
+        interpolation: string
+        output: number
+    }, accessors: Array<Accessor>) {
+        this.input = accessors[input]
+        this.interpolation = interpolation
+        this.output = accessors[output]
+    }
+    input: Accessor
+    interpolation: string
+    output: Accessor
+}
+
+class Animation {
+    constructor({ channels, name, samplers }: {
+        channels: Array<{
+            sampler: number,
+            target: {
+                node: number,
+                path: string
+            }
+        }>,
+        name: string,
+        samplers: Array<{
+            input: number,
+            interpolation: string,
+            output: number
+        }>
+    }, accessors: Array<Accessor>) {
+        let _samplers = samplers.map(sampler => {
+            return new Sampler(sampler, accessors)
+        })
+
+        this.channels = channels.map(channel => {
+            return new Channel(channel, _samplers)
+        })
+
+        this.samplers = _samplers
+    }
+
+    channels: Array<Channel>
+    name: string
+    samplers: Array<Sampler>
 }
 
 export let glbDecoder = (glbBuffer: ArrayBuffer) => {

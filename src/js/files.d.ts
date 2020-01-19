@@ -1,5 +1,6 @@
 export let glb: {
-    excalibur: ArrayBuffer
+    excalibur: ArrayBuffer,
+    untitled: ArrayBuffer
 }
 export let glsl: {
     main: {
