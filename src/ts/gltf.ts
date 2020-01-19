@@ -147,7 +147,7 @@ class Accessor {
 
         this.componentType = gltfile.json.accessors[accessorNum].componentType
 
-        this.byteOffset = gltfile.json.accessors[accessorNum].byteOffset
+        this.byteOffset = gltfile.json.accessors[accessorNum].byteOffset || 0
 
         this.count = gltfile.json.accessors[accessorNum].count
 
@@ -159,31 +159,31 @@ class Accessor {
 
         switch (this.type) {
             case "SCALAR": {
-                this.size = 1
+                this.sizes = [1]
                 break
             }
             case "VEC2": {
-                this.size = 2
+                this.sizes = [2]
                 break
             }
             case "VEC3": {
-                this.size = 3
+                this.sizes = [3]
                 break
             }
             case "VEC4": {
-                this.size = 4
+                this.sizes = [4]
                 break
             }
             case "MAT2": {
-                this.size = 4
+                this.sizes = [2, 2]
                 break
             }
             case "MAT3": {
-                this.size = 9
+                this.sizes = [3, 3, 3]
                 break
             }
             case "MAT4": {
-                this.size = 16
+                this.sizes = [4, 4, 4, 4]
                 break
             }
         }
@@ -195,11 +195,11 @@ class Accessor {
                         bufferView.byteOffset,
                         bufferView.byteOffset +
                         bufferView.byteLength
-                    )
-                        .slice(
-                            gltfile.json.accessors[accessorNum].byteOffset,
-                            this.size * this.count * 4
-                        ).buffer
+                    ).slice(
+                        this.byteOffset,
+                        this.byteOffset +
+                        this.sizes.reduce((prev, curr) => prev + curr, 0) * this.count * 2
+                    ).buffer
                 )
                 break
             }
@@ -209,6 +209,10 @@ class Accessor {
                         bufferView.byteOffset,
                         bufferView.byteOffset +
                         bufferView.byteLength
+                    ).slice(
+                        this.byteOffset,
+                        this.byteOffset +
+                        this.sizes.reduce((prev, curr) => prev + curr, 0) * this.count * 4
                     ).buffer
                 )
                 break
@@ -223,7 +227,7 @@ class Accessor {
     max?: Array<number>
     min?: Array<number>
     type: string
-    size: number
+    sizes: Array<number>
 }
 
 class Mesh {

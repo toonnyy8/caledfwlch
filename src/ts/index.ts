@@ -53,48 +53,35 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                 gl.STATIC_DRAW
             )
 
-
             let positionLocation = gl.getAttribLocation(mainProgram, "v_Position")
-            gl.enableVertexAttribArray(positionLocation)
-            let size = objs["excalibur"]
-                .meshes[0]
-                .primitives[0]
-                .attributes
-                .POSITION
-                .size
-            let type = objs["excalibur"]
-                .meshes[0]
-                .primitives[0]
-                .attributes
-                .POSITION
-                .componentType
-            let normalize = false
-            let stride = 0
-            let offset = 0
-            gl.vertexAttribPointer(
-                positionLocation,
-                size,
-                type,
-                normalize,
-                stride,
-                offset
-            )
-
-            let indexBuffer = gl.createBuffer()
-            gl.bindBuffer(
-                gl.ELEMENT_ARRAY_BUFFER,
-                indexBuffer
-            )
-
-            gl.bufferData(
-                gl.ELEMENT_ARRAY_BUFFER,
+            {
+                let type = objs["excalibur"]
+                    .meshes[0]
+                    .primitives[0]
+                    .attributes
+                    .POSITION
+                    .componentType
+                let normalize = false
+                let stride = 0
+                let offset = 0
                 objs["excalibur"]
                     .meshes[0]
                     .primitives[0]
-                    .indices
-                    .buffer,
-                gl.STATIC_DRAW
-            )
+                    .attributes
+                    .POSITION
+                    .sizes
+                    .forEach((size, idx) => {
+                        gl.enableVertexAttribArray(positionLocation + idx)
+                        gl.vertexAttribPointer(
+                            positionLocation + idx,
+                            size,
+                            type,
+                            normalize,
+                            stride,
+                            offset
+                        )
+                    })
+            }
 
         }
         gl.bindVertexArray(null)
@@ -142,6 +129,20 @@ gl.clear(gl.COLOR_BUFFER_BIT)
         gl.bindVertexArray(vao)
 
         {
+            let indexBuffer = gl.createBuffer()
+            gl.bindBuffer(
+                gl.ELEMENT_ARRAY_BUFFER,
+                indexBuffer
+            )
+            gl.bufferData(
+                gl.ELEMENT_ARRAY_BUFFER,
+                objs["excalibur"]
+                    .meshes[0]
+                    .primitives[0]
+                    .indices
+                    .buffer,
+                gl.STATIC_DRAW
+            )
             const vertexCount = objs["excalibur"]
                 .meshes[0]
                 .primitives[0]
