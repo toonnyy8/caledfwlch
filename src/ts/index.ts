@@ -157,12 +157,26 @@ gl.clear(gl.COLOR_BUFFER_BIT)
         }
     })(gl)
 }
-console.log(objs["excalibur"]
-    .animations[0]
-    .channels[0]
-    .sampler
-    .input
-    .buffer)
+console.log(
+    objs["excalibur"]
+        .animations[0]
+        .channels[0]
+        .sampler
+        .input
+        .buffer
+        .reverse()
+        .find(value => value < 1)
+)
+console.log(
+    objs["excalibur"]
+        .animations[0]
+        .channels[0]
+        .sampler
+        .input
+        .buffer
+        .reverse()
+        .find(value => value > 1)
+)
 let time = 0
 let loop = () => {
     requestAnimationFrame(loop)

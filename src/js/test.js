@@ -1,11 +1,13 @@
 import { mat4 } from "gl-matrix"
-import { glbDecoder, createShaderProgram, GLTF } from "../ts/gltool"
+import { createShaderProgram } from "../ts/gltool"
+import { GLTF, glbDecoder } from "../ts/gltf"
+
 import * as files from "../js/files"
 
 var cubeRotation = 0.0;
 
 let objs = Object.keys(files.glb).reduce((acc, curr) => {
-    acc[curr] = glbDecoder(files.glb[curr])
+    acc[curr] = new GLTF(glbDecoder(files.glb[curr]))
     return acc
 }, {})
 
@@ -114,19 +116,14 @@ function initBuffers(gl, programInfo) {
     // shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(
-        objs["excalibur"].bin.slice(
-            objs["excalibur"].json.bufferViews[
-                objs["excalibur"].json.meshes[0].primitives[0].attributes.POSITION
-            ].byteOffset,
-            objs["excalibur"].json.bufferViews[
-                objs["excalibur"].json.meshes[0].primitives[0].attributes.POSITION
-            ].byteOffset +
-            objs["excalibur"].json.bufferViews[
-                objs["excalibur"].json.meshes[0].primitives[0].attributes.POSITION
-            ].byteLength
-        ).buffer
-    ), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,
+        objs["excalibur"]
+            .meshes[0]
+            .primitives[0]
+            .attributes
+            .POSITION
+            .buffer
+        , gl.STATIC_DRAW);
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute
@@ -153,19 +150,12 @@ function initBuffers(gl, programInfo) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-        new Uint16Array(
-            objs["excalibur"].bin.slice(
-                objs["excalibur"].json.bufferViews[
-                    objs["excalibur"].json.meshes[0].primitives[0].indices
-                ].byteOffset,
-                objs["excalibur"].json.bufferViews[
-                    objs["excalibur"].json.meshes[0].primitives[0].indices
-                ].byteOffset +
-                objs["excalibur"].json.bufferViews[
-                    objs["excalibur"].json.meshes[0].primitives[0].indices
-                ].byteLength
-            ).buffer
-        ), gl.STATIC_DRAW);
+        objs["excalibur"]
+            .meshes[0]
+            .primitives[0]
+            .indices
+            .buffer,
+        gl.STATIC_DRAW);
 
     gl.bindVertexArray(null)
 
@@ -245,9 +235,11 @@ function drawScene(gl, programInfo, vao, deltaTime) {
         modelViewMatrix);
 
     {
-        const vertexCount = objs["excalibur"].json.accessors[
-            objs["excalibur"].json.meshes[0].primitives[0].indices
-        ].count
+        const vertexCount = objs["excalibur"]
+            .meshes[0]
+            .primitives[0]
+            .indices
+            .count
         const type = gl.UNSIGNED_SHORT;
         const offset = 0;
         gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
