@@ -50,6 +50,7 @@ export interface GLTFile {
             bufferView: number,
             byteOffset?: number,
             componentType: number,
+            normalized?: boolean,
             count: number,
             max?: Array<number>,
             min?: Array<number>,
@@ -147,6 +148,8 @@ class Accessor {
 
         this.componentType = gltfile.json.accessors[accessorNum].componentType
 
+        this.normalized = gltfile.json.accessors[accessorNum].normalized || false
+
         this.byteOffset = gltfile.json.accessors[accessorNum].byteOffset || 0
 
         this.count = gltfile.json.accessors[accessorNum].count
@@ -222,7 +225,8 @@ class Accessor {
     }
     buffer: Float32Array | Uint16Array
     componentType: number
-    byteOffset?: number
+    normalized: boolean = false
+    byteOffset: number = 0
     count: number
     max?: Array<number>
     min?: Array<number>
@@ -338,6 +342,8 @@ class Animation {
         let _samplers = samplers.map(sampler => {
             return new Sampler(sampler, accessors)
         })
+
+        this.name = name
 
         this.channels = channels.map(channel => {
             return new Channel(channel, _samplers)

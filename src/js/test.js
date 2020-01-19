@@ -128,21 +128,40 @@ function initBuffers(gl, programInfo) {
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute
     {
-        const numComponents = 3;
-        const type = gl.FLOAT;
-        const normalize = false;
-        const stride = 0;
-        const offset = 0;
-        // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.enableVertexAttribArray(
-            programInfo.attribLocations.vertexPosition);
-        gl.vertexAttribPointer(
-            programInfo.attribLocations.vertexPosition,
-            numComponents,
-            type,
-            normalize,
-            stride,
-            offset);
+        let type = objs["excalibur"]
+            .meshes[0]
+            .primitives[0]
+            .attributes
+            .POSITION
+            .componentType
+
+        let normalize = objs["excalibur"]
+            .meshes[0]
+            .primitives[0]
+            .attributes
+            .POSITION
+            .normalized
+
+        let stride = 0
+        let offset = 0
+
+        objs["excalibur"]
+            .meshes[0]
+            .primitives[0]
+            .attributes
+            .POSITION
+            .sizes
+            .forEach((size, idx) => {
+                gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition + idx)
+                gl.vertexAttribPointer(
+                    programInfo.attribLocations.vertexPosition + idx,
+                    size,
+                    type,
+                    normalize,
+                    stride,
+                    offset
+                )
+            })
     }
 
 
