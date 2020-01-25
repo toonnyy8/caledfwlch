@@ -1,108 +1,106 @@
 export interface GLTFile {
-    json: {
-        asset: { generator: string, version: string },
-        scene: number,
-        scenes: Array<{
-            name: string
-            nodes: Array<number>
-        }>,
-        nodes: Array<{
-            children?: Array<number>
-            mesh: number
-            name: string,
-            scale?: [number, number, number]
-            translation?: [number, number, number]
-            rotation?: [number, number, number, number]
-        }>,
-        animations: Array<{
-            channels: Array<{
-                sampler: number,
-                target: {
-                    node: number,
-                    path: string
-                }
-            }>,
-            name: string,
-            samplers: Array<{
-                input: number,
-                interpolation: string,
-                output: number
-            }>
-        }>,
-        materials: Array<{
-            doubleSided: boolean,
-            name: string,
-            pbrMetallicRoughness: {
-                baseColorFactor: [number, number, number, number],
-                metallicFactor: number,
-                roughnessFactor: number,
+    asset: { generator: string, version: string },
+    scene: number,
+    scenes: Array<{
+        name: string
+        nodes: Array<number>
+    }>,
+    nodes: Array<{
+        children?: Array<number>
+        mesh: number
+        name: string,
+        scale?: [number, number, number]
+        translation?: [number, number, number]
+        rotation?: [number, number, number, number]
+    }>,
+    animations: Array<{
+        channels: Array<{
+            sampler: number,
+            target: {
+                node: number,
+                path: string
             }
         }>,
-        meshes: Array<{
-            name: string,
-            primitives: Array<{
-                attributes: { POSITION: number, NORMAL: number, TEXCOORD_0: number, JOINTS_0: number, WEIGHTS_0: number }
-                indices: number
-                material: number
-            }>
-        }>,
-        accessors: Array<{
-            bufferView: number,
-            byteOffset?: number,
-            componentType: number,
-            normalized?: boolean,
-            count: number,
-            max?: Array<number>,
-            min?: Array<number>,
-            type: string
-        }>,
-        bufferViews: Array<{
-            buffer: number,
-            byteLength: number,
-            byteOffset: number
-        }>,
-        buffers: Array<{
-            byteLength: number
-        }>,
-    },
-    bin: Uint8Array
+        name: string,
+        samplers: Array<{
+            input: number,
+            interpolation: string,
+            output: number
+        }>
+    }>,
+    materials: Array<{
+        doubleSided: boolean,
+        name: string,
+        pbrMetallicRoughness: {
+            baseColorFactor: [number, number, number, number],
+            metallicFactor: number,
+            roughnessFactor: number,
+        }
+    }>,
+    meshes: Array<{
+        name: string,
+        primitives: Array<{
+            attributes: { POSITION: number, NORMAL: number, TEXCOORD_0: number, JOINTS_0: number, WEIGHTS_0: number }
+            indices: number
+            material: number
+        }>
+    }>,
+    accessors: Array<{
+        bufferView: number,
+        byteOffset?: number,
+        componentType: number,
+        normalized?: boolean,
+        count: number,
+        max?: Array<number>,
+        min?: Array<number>,
+        type: string
+    }>,
+    bufferViews: Array<{
+        buffer: number,
+        byteLength: number,
+        byteOffset: number
+    }>,
+    buffers: Array<{
+        byteLength: number,
+        bin: Uint8Array
+    }>,
 }
 
 export class GLTF {
     constructor(gltfile: GLTFile) {
-        let _accessors = gltfile.json.accessors.map((accessor, accessorNum) => {
+        let _accessors = gltfile.accessors.map((accessor, accessorNum) => {
             return new Accessor(gltfile, accessorNum)
         })
         this.asset = JSON.parse(
             JSON.stringify(
-                gltfile.json.asset
+                gltfile.asset
             )
         )
-        this.scene = gltfile.json.scene
+        this.scene = gltfile.scene
         this.scenes = JSON.parse(
             JSON.stringify(
-                gltfile.json.scenes
+                gltfile.scenes
             )
         )
         this.nodes = JSON.parse(
             JSON.stringify(
-                gltfile.json.nodes
+                gltfile.nodes
             )
         )
 
-        if (gltfile.json.animations) {
-            this.animations = gltfile.json.animations.map(animation => {
+        if (gltfile.animations) {
+            this.animations = gltfile.animations.map(animation => {
                 return new Animation(animation, _accessors)
             })
         }
 
         this.materials = JSON.parse(
             JSON.stringify(
-                gltfile.json.materials
+                gltfile.materials
             )
         )
-        if (gltfile.json.meshes) {
-            this.meshes = gltfile.json.meshes.map(mesh => {
+        if (gltfile.meshes) {
+            this.meshes = gltfile.meshes.map(mesh => {
                 return new Mesh(mesh, _accessors)
             })
         }
@@ -142,23 +140,23 @@ export class GLTF {
 
 class Accessor {
     constructor(gltfile: GLTFile, accessorNum: number) {
-        let bufferView = gltfile.json.bufferViews[
-            gltfile.json.accessors[accessorNum].bufferView
+        let bufferView = gltfile.bufferViews[
+            gltfile.accessors[accessorNum].bufferView
         ]
 
-        this.componentType = gltfile.json.accessors[accessorNum].componentType
+        this.componentType = gltfile.accessors[accessorNum].componentType
 
-        this.normalized = gltfile.json.accessors[accessorNum].normalized || false
+        this.normalized = gltfile.accessors[accessorNum].normalized || false
 
-        this.byteOffset = gltfile.json.accessors[accessorNum].byteOffset || 0
+        this.byteOffset = gltfile.accessors[accessorNum].byteOffset || 0
 
-        this.count = gltfile.json.accessors[accessorNum].count
+        this.count = gltfile.accessors[accessorNum].count
 
-        this.max = gltfile.json.accessors[accessorNum].max
+        this.max = gltfile.accessors[accessorNum].max
 
-        this.min = gltfile.json.accessors[accessorNum].min
+        this.min = gltfile.accessors[accessorNum].min
 
-        this.type = gltfile.json.accessors[accessorNum].type
+        this.type = gltfile.accessors[accessorNum].type
 
         switch (this.type) {
             case "SCALAR": {
@@ -191,10 +189,10 @@ class Accessor {
             }
         }
 
-        switch (gltfile.json.accessors[accessorNum].componentType) {
+        switch (gltfile.accessors[accessorNum].componentType) {
             case 5123: {
                 this.buffer = new Uint16Array(
-                    gltfile.bin.slice(
+                    gltfile.buffers[0].bin.slice(
                         bufferView.byteOffset,
                         bufferView.byteOffset +
                         bufferView.byteLength
@@ -208,7 +206,7 @@ class Accessor {
             }
             case 5126: {
                 this.buffer = new Float32Array(
-                    gltfile.bin.slice(
+                    gltfile.buffers[0].bin.slice(
                         bufferView.byteOffset,
                         bufferView.byteOffset +
                         bufferView.byteLength
@@ -362,13 +360,14 @@ export let glbDecoder = (glbBuffer: ArrayBuffer) => {
     let glbU32A = new Uint32Array(glbBuffer)
     let jsonLength = glbU32A[3]
     let binLength = glbU32A[4 + jsonLength / 4]
-    let jsonData = JSON.parse(
+    // let binData = glbBytes.slice(20 + jsonLength + 8, 20 + jsonLength + 8 + binLength)
+
+    let gltf: GLTFile = JSON.parse(
         String.fromCharCode(
             ...glbBytes.slice(20, 20 + jsonLength)
         )
     )
-    let binData = glbBytes.slice(20 + jsonLength + 8, 20 + jsonLength + 8 + binLength)
-
-    let gltf: GLTFile = { json: jsonData, bin: binData }
+    gltf.buffers[0].bin = glbBytes.slice(20 + jsonLength + 8, 20 + jsonLength + 8 + binLength)
+    console.log(gltf)
     return gltf
 }

@@ -4,9 +4,7 @@
   "description": "game",
   "main": "index.js",
   "dependencies": {
-    "@types/gl-matrix": "^2.4.5",
     "core-js": "^3.6.3",
-    "gl-matrix": "^3.1.0",
     "parcel": "^1.12.4",
     "regenerator-runtime": "^0.13.3"
   },

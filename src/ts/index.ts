@@ -1,8 +1,8 @@
 import "core-js/stable"
 import "regenerator-runtime/runtime"
-import * as glm from "gl-matrix"
+import * as glm from "../lib/gl-matrix/index"
 import { createShaderProgram } from "./gltool"
-import { GLTF, glbDecoder } from "./gltf"
+import { GLTF, glbDecoder, GLTFile } from "./gltf"
 import * as files from "../js/files"
 
 
@@ -14,7 +14,166 @@ let objs: { [key: string]: GLTF } = Object.keys(files.glb).reduce((acc: object, 
 }, {})
 console.log(objs)
 
-console.log(files.glsl)
+let animationMatrix = (model: GLTF, animName: string, time: number) => {
+    return model
+        .animations
+        .find(animation => animation.name == animName)
+        .channels
+        .map(channel => {
+            let hotkey = 0
+            let _time = time % channel
+                .sampler
+                .input.max[0]
+
+            if (Number.isNaN(_time)) {
+                _time = 0
+            }
+            channel
+                .sampler
+                .input
+                .buffer
+                .slice()
+                .find((value, index) => {
+                    if (value >= _time) {
+                        hotkey = index
+                        return true
+                    }
+                    return false
+                })
+
+            let targetMatrix = (vec: number[], rad?: number) => {
+                switch (channel
+                    .target
+                    .path) {
+                    case "translation": {
+                        return glm.mat4.translate(
+                            glm.mat4.create(),
+                            glm.mat4.create(),
+                            vec
+                        )
+                    }
+                    case "rotation": {
+
+                        return glm.mat4.fromQuat(
+                            glm.mat4.create(),
+                            glm.quat.fromValues(vec[0], vec[1], vec[2], vec[3])
+                        )
+                    }
+                    case "scale": {
+                        return glm.mat4.scale(
+                            glm.mat4.create(),
+                            glm.mat4.create(),
+                            vec
+                        )
+                    }
+                }
+            }
+
+            if (_time == channel
+                .sampler
+                .input
+                .buffer[hotkey]) {
+                let vec = channel
+                    .sampler
+                    .output
+                    .buffer
+                    .slice(
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0) *
+                        hotkey,
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0) *
+                        hotkey +
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0)
+                    )
+                // console.log([...vec])
+                return targetMatrix([...vec], [...vec][3] || undefined)
+            } else {
+                let vecPrev = channel
+                    .sampler
+                    .output
+                    .buffer
+                    .slice(
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0) *
+                        (hotkey - 1),
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0) *
+                        (hotkey - 1) +
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0)
+                    )
+                let vecNext = channel
+                    .sampler
+                    .output
+                    .buffer
+                    .slice(
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0) *
+                        hotkey,
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0) *
+                        hotkey +
+                        channel
+                            .sampler
+                            .output
+                            .sizes
+                            .reduce((prev, curr) => prev + curr, 0)
+                    );
+                // console.log([...vec])
+                let diff = (channel
+                    .sampler
+                    .input
+                    .buffer[hotkey] -
+                    channel
+                        .sampler
+                        .input
+                        .buffer[hotkey - 1])
+                let wPrev = 1 - (_time -
+                    channel
+                        .sampler
+                        .input
+                        .buffer[hotkey - 1]) / diff;
+
+                let wNext = 1 - (channel
+                    .sampler
+                    .input
+                    .buffer[hotkey] -
+                    _time) / diff
+                let vec = vecPrev.map((v, i) => {
+                    return v * wPrev + vecNext[i] * wNext
+                })
+                // console.log(wPrev, wNext)
+                // console.log(_time)
+                return targetMatrix([...vec], [...vec][3] || undefined)
+            }
+        }).reduce((prev: glm.mat4, curr: glm.mat4) => glm.mat4.mul(glm.mat4.create(), prev, curr || glm.mat4.create()), glm.mat4.create())
+}
 
 let canvas = document.createElement("canvas")
 canvas.width = 800
@@ -106,7 +265,6 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                 .accessors[
                 objs["excalibur"]
                     .gltfile
-                    .json
                     .meshes
                     .find(mesh => mesh.name == "Excalibur")
                     .primitives[0]
@@ -175,6 +333,15 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                 cameraMatrix
             )
 
+            gl.uniformMatrix4fv(
+                gl.getUniformLocation(
+                    mainProgram,
+                    "u_Posture"
+                ),
+                false,
+                animationMatrix(objs["excalibur"], "cyclone", time)
+            )
+
             gl.clear(gl.COLOR_BUFFER_BIT)
 
             {
@@ -199,45 +366,23 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                 .sampler
                 .input
                 .max[0]) {
-                console.log(
-                    objs["excalibur"]
-                        .accessors[
-                        objs["excalibur"]
-                            .gltfile
-                            .json
-                            .animations
-                            .find(animation => animation.name == "spike")
-                            .samplers[
-                            objs["excalibur"]
-                                .gltfile
-                                .json
-                                .animations
-                                .find(animation => animation.name == "spike")
-                                .channels[0]
-                                .sampler
-                        ].input
-                    ].buffer
-                        .slice()
-                        .reverse()
-                        .find(value => value < time)
-                )
-
-                console.log(
-                    objs["excalibur"]
-                        .animations[0]
-                        .channels[0]
-                        .sampler
-                        .input
-                        .buffer
-                        .slice()
-                        .find(value => value > time)
-                )
+                // console.log(
+                //     objs["excalibur"]
+                //         .animations
+                //         .find(animation => animation.name == "spike")
+                //         .channels[0]
+                //         .sampler
+                //         .input
+                //         .buffer
+                //         .slice()
+                //         .find(value => value >= time)
+                // )
             }
-
-            time += 0.16
+            time += 0.016
         }
 
         loop()
 
     })(gl)
 }
+
