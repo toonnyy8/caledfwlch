@@ -71,40 +71,56 @@ export class GLTF {
         let _accessors = gltfile.accessors.map((accessor, accessorNum) => {
             return new Accessor(gltfile, accessorNum)
         })
+
+        let _materials = gltfile.materials.map(material => new Material(material))
+
+        let _meshes: Array<Mesh>
+
+        if (gltfile.meshes) {
+            _meshes = gltfile.meshes.map(mesh => {
+                return new Mesh(mesh, _accessors, _materials)
+            })
+        }
+
+        let _nodes = gltfile.nodes.map(node => {
+            return new Node(node, _meshes)
+        })
+        _nodes.forEach((node, idx) => {
+            if (gltfile.nodes[idx].children) {
+                node.children = []
+                gltfile.nodes[idx].children.forEach(child => {
+                    node.children.push(_nodes[child])
+                })
+            }
+        })
+
         this.asset = JSON.parse(
             JSON.stringify(
                 gltfile.asset
             )
         )
         this.scene = gltfile.scene
+
         this.scenes = JSON.parse(
             JSON.stringify(
                 gltfile.scenes
             )
         )
-        this.nodes = JSON.parse(
-            JSON.stringify(
-                gltfile.nodes
-            )
-        )
+
+        this.nodes = _nodes
 
         if (gltfile.animations) {
             this.animations = gltfile.animations.map(animation => {
-                return new Animation(animation, _accessors)
+                return new Animation(animation, _accessors, _nodes)
             })
         }
 
-        this.materials = JSON.parse(
-            JSON.stringify(
-                gltfile.materials
-            )
-        )
-        if (gltfile.meshes) {
-            this.meshes = gltfile.meshes.map(mesh => {
-                return new Mesh(mesh, _accessors)
-            })
-        }
+        this.materials = _materials
+
+        this.meshes = _meshes
+
         this.accessors = _accessors
+
         this.gltfile = gltfile
     }
 
@@ -116,14 +132,7 @@ export class GLTF {
         name: string
         nodes: Array<number>
     }>
-    nodes: Array<{
-        children?: Array<number>
-        mesh: number
-        name: string,
-        scale?: [number, number, number]
-        translation?: [number, number, number]
-        rotation?: [number, number, number, number]
-    }>
+    nodes: Array<Node>
     animations: Array<Animation>
     materials: Array<{
         doubleSided: boolean,
@@ -232,6 +241,36 @@ class Accessor {
     sizes: Array<number>
 }
 
+class Node {
+    constructor({
+        children,
+        mesh,
+        name,
+        translation,
+        rotation,
+        scale
+    }: {
+        children?: Array<number>
+        mesh?: number
+        name: string
+        translation?: [number, number, number]
+        rotation?: [number, number, number, number]
+        scale?: [number, number, number]
+    }, meshes: Array<Mesh>) {
+        this.mesh = meshes[mesh]
+        this.name = name
+        this.translation = translation
+        this.rotation = rotation
+        this.scale = scale
+    }
+    children?: Array<Node>
+    mesh?: Mesh
+    name: string
+    translation?: [number, number, number]
+    rotation?: [number, number, number, number]
+    scale?: [number, number, number]
+}
+
 class Mesh {
     constructor({ name, primitives }: {
         name: string
@@ -246,7 +285,9 @@ class Mesh {
             indices: number
             material: number
         }>
-    }, accessors: Array<Accessor>) {
+    },
+        accessors: Array<Accessor>,
+        materials: Array<Material>) {
         this.name = name
         this.primitives = primitives.map((primitive) => {
             return {
@@ -258,7 +299,7 @@ class Mesh {
                     WEIGHTS_0: accessors[primitive.attributes.WEIGHTS_0]
                 },
                 indices: accessors[primitive.indices],
-                material: primitive.material
+                material: materials[primitive.material]
             }
         })
     }
@@ -272,8 +313,35 @@ class Mesh {
             WEIGHTS_0: Accessor
         }
         indices: Accessor
-        material: number
+        material: Material
     }>
+}
+
+class Material {
+    constructor({
+        doubleSided,
+        name,
+        pbrMetallicRoughness
+    }: {
+        doubleSided: boolean
+        name: string
+        pbrMetallicRoughness: {
+            baseColorFactor: [number, number, number, number]
+            metallicFactor: number
+            roughnessFactor: number
+        }
+    }) {
+        this.doubleSided = doubleSided
+        this.name = name
+        this.pbrMetallicRoughness = pbrMetallicRoughness
+    }
+    doubleSided: boolean
+    name: string
+    pbrMetallicRoughness: {
+        baseColorFactor: [number, number, number, number]
+        metallicFactor: number
+        roughnessFactor: number
+    }
 }
 
 class Channel {
@@ -287,17 +355,19 @@ class Channel {
                 node: number
                 path: string
             }
-        }, samplers: Array<Sampler>
+        },
+        samplers: Array<Sampler>,
+        nodes: Array<Node>
     ) {
         this.sampler = samplers[sampler]
         this.target = {
-            node: target.node,
+            node: nodes[target.node],
             path: target.path
         }
     }
     sampler: Sampler
     target: {
-        node: number
+        node: Node
         path: string
     }
 }
@@ -336,7 +406,10 @@ class Animation {
             interpolation: string,
             output: number
         }>
-    }, accessors: Array<Accessor>) {
+    },
+        accessors: Array<Accessor>,
+        nodes: Array<Node>
+    ) {
         let _samplers = samplers.map(sampler => {
             return new Sampler(sampler, accessors)
         })
@@ -344,7 +417,7 @@ class Animation {
         this.name = name
 
         this.channels = channels.map(channel => {
-            return new Channel(channel, _samplers)
+            return new Channel(channel, _samplers, nodes)
         })
 
         this.samplers = _samplers
