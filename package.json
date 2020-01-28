@@ -15,7 +15,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "parcel index.html -p 8080 --open"
+    "dev": "parcel index.html -p 8080 --open",
+    "build": "parcel build --no-content-hash  ./index.html --out-dir build --public-url=./"
   },
   "repository": {
     "type": "git",

@@ -172,7 +172,7 @@ let animationMatrix = (model: GLTF, animName: string, time: number) => {
                 // console.log(_time)
                 return targetMatrix([...vec], [...vec][3] || undefined)
             }
-        }).reduce((prev: glm.mat4, curr: glm.mat4) => glm.mat4.mul(glm.mat4.create(), prev, curr || glm.mat4.create()), glm.mat4.create())
+        }).reduce((prev, curr) => glm.mat4.mul(glm.mat4.create(), prev, curr || glm.mat4.create()), glm.mat4.create())
 }
 
 let canvas = document.createElement("canvas")
@@ -182,7 +182,7 @@ canvas.height = 600
 document.body.appendChild(canvas)
 
 let gl = canvas.getContext("webgl2")
-gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+gl.clearColor(0.5, 0.2, 0.5, 1.0);  // Clear to black, fully opaque
 gl.clearDepth(1.0);                 // Clear everything
 gl.enable(gl.DEPTH_TEST);           // Enable depth testing
 gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
@@ -201,16 +201,6 @@ gl.clear(gl.COLOR_BUFFER_BIT)
             gl.bindBuffer(
                 gl.ARRAY_BUFFER,
                 buffer
-            )
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .POSITION
-                    .buffer,
-                gl.STATIC_DRAW
             )
 
             let positionLocation = gl.getAttribLocation(mainProgram, "v_Position")
@@ -251,6 +241,72 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                     })
             }
 
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                objs["excalibur"]
+                    .meshes[0]
+                    .primitives[0]
+                    .attributes
+                    .POSITION
+                    .buffer,
+                gl.STATIC_DRAW
+            )
+        }
+        {
+            let buffer = gl.createBuffer()
+            gl.bindBuffer(
+                gl.ARRAY_BUFFER,
+                buffer
+            )
+
+            let normalLocation = gl.getAttribLocation(mainProgram, "v_Normal")
+            {
+                let type = objs["excalibur"]
+                    .meshes[0]
+                    .primitives[0]
+                    .attributes
+                    .NORMAL
+                    .componentType
+
+                let normalize = objs["excalibur"]
+                    .meshes[0]
+                    .primitives[0]
+                    .attributes
+                    .NORMAL
+                    .normalized
+
+                let stride = 0
+                let offset = 0
+
+                objs["excalibur"]
+                    .meshes[0]
+                    .primitives[0]
+                    .attributes
+                    .NORMAL
+                    .sizes
+                    .forEach((size, idx) => {
+                        gl.enableVertexAttribArray(normalLocation + idx)
+                        gl.vertexAttribPointer(
+                            normalLocation + idx,
+                            size,
+                            type,
+                            normalize,
+                            stride,
+                            offset
+                        )
+                    })
+            }
+
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                objs["excalibur"]
+                    .meshes[0]
+                    .primitives[0]
+                    .attributes
+                    .NORMAL
+                    .buffer,
+                gl.STATIC_DRAW
+            )
         }
         gl.bindVertexArray(null)
 
@@ -311,18 +367,18 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                 glm.mat4.create(),
                 [-0, 0.0, -6.0]
             )
-            glm.mat4.rotate(
-                cameraMatrix,
-                cameraMatrix,
-                Math.PI / 4,
-                [0, 0, 1]
-            )
-            glm.mat4.rotate(
-                cameraMatrix,
-                cameraMatrix,
-                time,
-                [1, -1, 0]
-            )
+            // glm.mat4.rotate(
+            //     cameraMatrix,
+            //     cameraMatrix,
+            //     Math.PI / 4,
+            //     [0, 0, 1]
+            // )
+            // glm.mat4.rotate(
+            //     cameraMatrix,
+            //     cameraMatrix,
+            //     time,
+            //     [1, -1, 0]
+            // )
 
             gl.uniformMatrix4fv(
                 gl.getUniformLocation(
@@ -340,6 +396,42 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                 ),
                 false,
                 animationMatrix(objs["excalibur"], "cyclone", time)
+            )
+
+            gl.uniform3fv(
+                gl.getUniformLocation(
+                    mainProgram,
+                    "u_DirLight.direction"
+                ),
+                [0, 0, -6]
+            )
+            gl.uniform3fv(
+                gl.getUniformLocation(
+                    mainProgram,
+                    "u_DirLight.lightColor"
+                ),
+                [1, 1, 1]
+            )
+            gl.uniform3fv(
+                gl.getUniformLocation(
+                    mainProgram,
+                    "u_DirLight.ambient"
+                ),
+                [0.2, 0.2, 0.2]
+            )
+            gl.uniform3fv(
+                gl.getUniformLocation(
+                    mainProgram,
+                    "u_DirLight.diffuse"
+                ),
+                [0.4, 0.4, 0.4]
+            )
+            gl.uniform3fv(
+                gl.getUniformLocation(
+                    mainProgram,
+                    "u_DirLight.specular"
+                ),
+                [0.5, 0.5, 0.5]
             )
 
             gl.clear(gl.COLOR_BUFFER_BIT)
@@ -378,7 +470,7 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                 //         .find(value => value >= time)
                 // )
             }
-            time += 0.016
+            time += 0.001
         }
 
         loop()
