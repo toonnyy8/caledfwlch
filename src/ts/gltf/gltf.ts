@@ -40,7 +40,13 @@ export interface GLTFile {
     meshes: Array<{
         name: string,
         primitives: Array<{
-            attributes: { POSITION: number, NORMAL: number, TEXCOORD_0: number, JOINTS_0: number, WEIGHTS_0: number }
+            attributes: {
+                POSITION: number,
+                NORMAL: number,
+                TEXCOORD_0: number,
+                JOINTS_0: number,
+                WEIGHTS_0: number
+            }
             indices: number
             material: number
         }>

@@ -2,7 +2,8 @@ import "core-js/stable"
 import "regenerator-runtime/runtime"
 import * as glm from "../lib/gl-matrix/index"
 import { createShaderProgram } from "./gltool"
-import { GLTF, glbDecoder, GLTFile } from "./gltf"
+import { GLTF, glbDecoder, GLTFile } from "./gltf/gltf"
+import { createMesh } from "./gltf/mesh"
 import * as files from "../js/files"
 
 
@@ -192,151 +193,157 @@ gl.clear(gl.COLOR_BUFFER_BIT)
 {
     ((gl: WebGL2RenderingContext) => {
         let mainProgram = createShaderProgram(gl, files.glsl.main.vert, files.glsl.main.frag)
-        gl.useProgram(mainProgram);
+        // gl.useProgram(gltfProgram);
 
-        let vao = gl.createVertexArray()
-        gl.bindVertexArray(vao)
-        {
-            let buffer = gl.createBuffer()
-            gl.bindBuffer(
-                gl.ARRAY_BUFFER,
-                buffer
-            )
+        let gltfProgram = createShaderProgram(gl, files.glsl.gltf.vert, files.glsl.gltf.frag)
+        gl.useProgram(gltfProgram);
 
-            let positionLocation = gl.getAttribLocation(mainProgram, "v_Position")
-            {
-                let type = objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .POSITION
-                    .componentType
+        let mesh = createMesh(gl, gltfProgram, objs["excalibur"].gltfile, "Excalibur")
+        console.log(mesh)
 
-                let normalize = objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .POSITION
-                    .normalized
+        // let vao = gl.createVertexArray()
+        // gl.bindVertexArray(vao)
+        // {
+        //     let buffer = gl.createBuffer()
+        //     gl.bindBuffer(
+        //         gl.ARRAY_BUFFER,
+        //         buffer
+        //     )
 
-                let stride = 0
-                let offset = 0
+        //     let positionLocation = gl.getAttribLocation(gltfProgram, "v_Position")
+        //     {
+        //         let type = objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .POSITION
+        //             .componentType
 
-                objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .POSITION
-                    .sizes
-                    .forEach((size, idx) => {
-                        gl.enableVertexAttribArray(positionLocation + idx)
-                        gl.vertexAttribPointer(
-                            positionLocation + idx,
-                            size,
-                            type,
-                            normalize,
-                            stride,
-                            offset
-                        )
-                    })
-            }
+        //         let normalize = objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .POSITION
+        //             .normalized
 
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .POSITION
-                    .buffer,
-                gl.STATIC_DRAW
-            )
-        }
-        {
-            let buffer = gl.createBuffer()
-            gl.bindBuffer(
-                gl.ARRAY_BUFFER,
-                buffer
-            )
+        //         let stride = 0
+        //         let offset = 0
 
-            let normalLocation = gl.getAttribLocation(mainProgram, "v_Normal")
-            {
-                let type = objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .NORMAL
-                    .componentType
+        //         objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .POSITION
+        //             .sizes
+        //             .forEach((size, idx) => {
+        //                 gl.enableVertexAttribArray(positionLocation + idx)
+        //                 gl.vertexAttribPointer(
+        //                     positionLocation + idx,
+        //                     size,
+        //                     type,
+        //                     normalize,
+        //                     stride,
+        //                     offset
+        //                 )
+        //             })
+        //     }
 
-                let normalize = objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .NORMAL
-                    .normalized
+        //     gl.bufferData(
+        //         gl.ARRAY_BUFFER,
+        //         objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .POSITION
+        //             .buffer,
+        //         gl.STATIC_DRAW
+        //     )
+        // }
+        // {
+        //     let buffer = gl.createBuffer()
+        //     gl.bindBuffer(
+        //         gl.ARRAY_BUFFER,
+        //         buffer
+        //     )
 
-                let stride = 0
-                let offset = 0
+        //     let normalLocation = gl.getAttribLocation(gltfProgram, "v_Normal")
+        //     {
+        //         let type = objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .NORMAL
+        //             .componentType
 
-                objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .NORMAL
-                    .sizes
-                    .forEach((size, idx) => {
-                        gl.enableVertexAttribArray(normalLocation + idx)
-                        gl.vertexAttribPointer(
-                            normalLocation + idx,
-                            size,
-                            type,
-                            normalize,
-                            stride,
-                            offset
-                        )
-                    })
-            }
+        //         let normalize = objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .NORMAL
+        //             .normalized
 
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .attributes
-                    .NORMAL
-                    .buffer,
-                gl.STATIC_DRAW
-            )
-        }
-        gl.bindVertexArray(null)
+        //         let stride = 0
+        //         let offset = 0
 
-        let indexBuffer = gl.createBuffer()
-        gl.bindBuffer(
-            gl.ELEMENT_ARRAY_BUFFER,
-            indexBuffer
-        )
-        gl.bufferData(
-            gl.ELEMENT_ARRAY_BUFFER,
-            objs["excalibur"]
-                .accessors[
-                objs["excalibur"]
-                    .gltfile
-                    .meshes
-                    .find(mesh => mesh.name == "Excalibur")
-                    .primitives[0]
-                    .indices
-            ].buffer,
-            gl.STATIC_DRAW
-        )
+        //         objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .NORMAL
+        //             .sizes
+        //             .forEach((size, idx) => {
+        //                 gl.enableVertexAttribArray(normalLocation + idx)
+        //                 gl.vertexAttribPointer(
+        //                     normalLocation + idx,
+        //                     size,
+        //                     type,
+        //                     normalize,
+        //                     stride,
+        //                     offset
+        //                 )
+        //             })
+        //     }
+
+        //     gl.bufferData(
+        //         gl.ARRAY_BUFFER,
+        //         objs["excalibur"]
+        //             .meshes[0]
+        //             .primitives[0]
+        //             .attributes
+        //             .NORMAL
+        //             .buffer,
+        //         gl.STATIC_DRAW
+        //     )
+        // }
+        // gl.bindVertexArray(null)
+
+        // let indexBuffer = gl.createBuffer()
+        // gl.bindBuffer(
+        //     gl.ELEMENT_ARRAY_BUFFER,
+        //     indexBuffer
+        // )
+        // gl.bufferData(
+        //     gl.ELEMENT_ARRAY_BUFFER,
+        //     objs["excalibur"]
+        //         .accessors[
+        //         objs["excalibur"]
+        //             .gltfile
+        //             .meshes
+        //             .find(mesh => mesh.name == "Excalibur")
+        //             .primitives[0]
+        //             .indices
+        //     ].buffer,
+        //     gl.STATIC_DRAW
+        // )
 
         let time = 0
         let loop = () => {
             requestAnimationFrame(loop)
 
-            gl.bindVertexArray(vao)
+            gl.bindVertexArray(mesh[0].vao)
             gl.bindBuffer(
                 gl.ELEMENT_ARRAY_BUFFER,
-                indexBuffer
+                mesh[0].index
             )
 
             let fieldOfView = 45 * Math.PI / 180 // in radians
@@ -354,7 +361,7 @@ gl.clear(gl.COLOR_BUFFER_BIT)
             )
             gl.uniformMatrix4fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_Projection"
                 ),
                 false,
@@ -382,7 +389,7 @@ gl.clear(gl.COLOR_BUFFER_BIT)
 
             gl.uniformMatrix4fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_Camera"
                 ),
                 false,
@@ -391,7 +398,7 @@ gl.clear(gl.COLOR_BUFFER_BIT)
 
             gl.uniformMatrix4fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_Posture"
                 ),
                 false,
@@ -400,35 +407,35 @@ gl.clear(gl.COLOR_BUFFER_BIT)
 
             gl.uniform3fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_DirLight.direction"
                 ),
                 [0, 0, -6]
             )
             gl.uniform3fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_DirLight.lightColor"
                 ),
                 [1, 1, 1]
             )
             gl.uniform3fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_DirLight.ambient"
                 ),
                 [0.2, 0.2, 0.2]
             )
             gl.uniform3fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_DirLight.diffuse"
                 ),
                 [0.4, 0.4, 0.4]
             )
             gl.uniform3fv(
                 gl.getUniformLocation(
-                    mainProgram,
+                    gltfProgram,
                     "u_DirLight.specular"
                 ),
                 [0.5, 0.5, 0.5]
