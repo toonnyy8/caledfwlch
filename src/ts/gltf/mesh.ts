@@ -56,6 +56,17 @@ export let createMesh = (
 
         let buffer = gltf.buffers[bufferView.buffer]
 
+        let bytes = (() => {
+            switch (accessor.componentType) {
+                case 5123: {
+                    return 2
+                }
+                case 5126: {
+                    return 4
+                }
+            }
+        })()
+
         gl.bufferData(
             gl.ARRAY_BUFFER,
             buffer
@@ -68,7 +79,7 @@ export let createMesh = (
                 .slice(
                     accessor.byteOffset || 0,
                     accessor.byteOffset || 0 +
-                    type2sizes[accessor.type].reduce((prev, curr) => prev + curr, 0) * accessor.count * 2
+                    type2sizes[accessor.type].reduce((prev, curr) => prev + curr, 0) * accessor.count * bytes
                 )
                 .buffer,
             gl.STATIC_DRAW
