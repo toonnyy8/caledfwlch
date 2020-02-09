@@ -1,4 +1,5 @@
 import * as gltf_ from "./gltf_"
+import * as glm from "../../lib/gl-matrix/index"
 
 const type2sizes = {
     "SCALAR": [1],
@@ -149,7 +150,8 @@ export let createMesh = (
                 index: bindIndex(
                     gl,
                     gltf.accessors[primitive.indices]
-                )
+                ),
+                posture: glm.mat4.create()
             }
 
         })
