@@ -99,19 +99,15 @@ export let animationMatrix = (model: gltf_.GLTF, animName: string, time: number)
                 }
             }
 
+            let vecSize = type2sizes[output.accessor.type]
+                .reduce((prev, curr) => prev + curr, 0)
+
             if (_time == input.bin[hotkey]) {
-                animation.samplers[channel.sampler]
                 let vec = output
                     .bin
                     .slice(
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0) *
-                        hotkey,
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0) *
-                        hotkey +
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0)
+                        vecSize * hotkey,
+                        vecSize * (hotkey + 1)
                     )
                 // console.log([...vec])
                 return targetMatrix([...vec], [...vec][3] || undefined)
@@ -119,39 +115,20 @@ export let animationMatrix = (model: gltf_.GLTF, animName: string, time: number)
                 let vecPrev = output
                     .bin
                     .slice(
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0) *
-                        (hotkey - 1),
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0) *
-                        (hotkey - 1) +
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0)
+                        vecSize * (hotkey - 1),
+                        vecSize * hotkey
                     )
                 let vecNext = output
                     .bin
                     .slice(
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0) *
-                        hotkey,
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0) *
-                        hotkey +
-                        type2sizes[output.accessor.type]
-                            .reduce((prev, curr) => prev + curr, 0)
+                        vecSize * hotkey,
+                        vecSize * (hotkey + 1)
                     );
                 // console.log([...vec])
-                let diff = (input
-                    .bin[hotkey] -
-                    input
-                        .bin[hotkey - 1])
-                let wPrev = 1 - (_time -
-                    input
-                        .bin[hotkey - 1]) / diff;
+                let diff = input.bin[hotkey] - input.bin[hotkey - 1]
+                let wPrev = 1 - (_time - input.bin[hotkey - 1]) / diff;
 
-                let wNext = 1 - (input
-                    .bin[hotkey] -
-                    _time) / diff
+                let wNext = 1 - (input.bin[hotkey] - _time) / diff
                 let vec = vecPrev.map((v, i) => {
                     return v * wPrev + vecNext[i] * wNext
                 })
