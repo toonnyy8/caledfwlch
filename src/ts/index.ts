@@ -2,7 +2,8 @@ import "core-js/stable"
 import "regenerator-runtime/runtime"
 import * as glm from "../lib/gl-matrix/index"
 import { createShaderProgram } from "./gltool"
-import { GLTF, glbDecoder, GLTFile } from "./gltf/gltf"
+import { GLTFile } from "./gltf/gltf"
+import { GLTF, glbDecoder, drawGltf__ } from "./gltf/gltf_"
 import { createMesh } from "./gltf/mesh"
 import { animationMatrix } from "./gltf/animation"
 import * as files from "../js/files"
@@ -11,7 +12,7 @@ import * as files from "../js/files"
 glm.glMatrix.setMatrixArrayType(Array)
 
 let objs: { [key: string]: GLTF } = Object.keys(files.glb).reduce((acc: object, curr: string) => {
-    acc[curr] = new GLTF(glbDecoder(files.glb[curr]))
+    acc[curr] = glbDecoder(files.glb[curr])
     return acc
 }, {})
 console.log(objs)
@@ -38,7 +39,7 @@ gl.clear(gl.COLOR_BUFFER_BIT)
         let gltfProgram = createShaderProgram(gl, files.glsl.gltf.vert, files.glsl.gltf.frag)
         gl.useProgram(gltfProgram);
 
-        let mesh = createMesh(gl, gltfProgram, objs["excalibur"].gltfile, "Excalibur")
+        let mesh = createMesh(gl, gltfProgram, objs["excalibur"], "Excalibur")
         console.log(mesh)
 
         let time = 0
@@ -107,7 +108,7 @@ gl.clear(gl.COLOR_BUFFER_BIT)
                     "u_Posture"
                 ),
                 false,
-                animationMatrix(objs["excalibur"].gltfile, "cyclone", time)
+                animationMatrix(objs["excalibur"], "cyclone", time)
             )
 
             gl.uniform3fv(
@@ -148,40 +149,8 @@ gl.clear(gl.COLOR_BUFFER_BIT)
 
             gl.clear(gl.COLOR_BUFFER_BIT)
 
-            {
-                const vertexCount = objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .indices
-                    .count
-                const type = objs["excalibur"]
-                    .meshes[0]
-                    .primitives[0]
-                    .indices
-                    .componentType
-                const offset = 0;
+            drawGltf__(gl, objs["excalibur"])
 
-                gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-            }
-
-            if (time < objs["excalibur"]
-                .animations[0]
-                .channels[0]
-                .sampler
-                .input
-                .max[0]) {
-                // console.log(
-                //     objs["excalibur"]
-                //         .animations
-                //         .find(animation => animation.name == "spike")
-                //         .channels[0]
-                //         .sampler
-                //         .input
-                //         .buffer
-                //         .slice()
-                //         .find(value => value >= time)
-                // )
-            }
             time += 0.001
         }
 

@@ -116,6 +116,19 @@ export let glbDecoder = (glbBuffer: ArrayBuffer) => {
     )
 
     gltf.buffers[0].bin = glbBytes.slice(20 + jsonLength + 8, 20 + jsonLength + 8 + binLength)
-    console.log(gltf)
+
     return gltf
+}
+
+export let drawGltf__ = (gl: WebGL2RenderingContext, gltf: GLTF) => {
+    let accessor = gltf.accessors[
+        gltf.meshes[0].primitives[0].indices
+    ]
+    const vertexCount = accessor
+        .count
+    const type = accessor
+        .componentType
+    const offset = 0;
+
+    gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
 }
