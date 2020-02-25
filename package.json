@@ -6,6 +6,7 @@
   "dependencies": {
     "core-js": "^3.6.3",
     "eruda": "^2.2.0",
+    "eruda-dom": "^2.0.0",
     "parcel": "^1.12.4",
     "regenerator-runtime": "^0.13.3"
   },
