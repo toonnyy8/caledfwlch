@@ -1,5 +1,8 @@
 import "core-js/stable"
 import "regenerator-runtime/runtime"
+import eruda from "eruda"
+eruda.init();
+
 import * as glm from "../lib/gl-matrix/index"
 import { createShaderProgram } from "./gltool"
 import { GLTFile } from "./gltf/gltf"
