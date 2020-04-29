@@ -85,6 +85,11 @@ export let createMesh = (
                 .buffer,
             gl.STATIC_DRAW
         )
+        gl.bindBuffer(
+            gl.ARRAY_BUFFER,
+            null
+        )
+        return vbo
     }
 
     let bindIndex = (
@@ -121,6 +126,10 @@ export let createMesh = (
             gl.STATIC_DRAW
         )
 
+        gl.bindBuffer(
+            gl.ELEMENT_ARRAY_BUFFER,
+            null
+        )
         return vbo
     }
 
