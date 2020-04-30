@@ -29,30 +29,6 @@ export let createMesh = (
             vbo
         )
 
-        let attribLocation = gl.getAttribLocation(program, attribLocationName)
-
-        let type = accessor
-            .componentType
-
-        let normalize = accessor
-            .normalized
-
-        let stride = 0
-        let offset = 0
-
-        type2sizes[accessor.type]
-            .forEach((size, idx) => {
-                gl.enableVertexAttribArray(attribLocation + idx)
-                gl.vertexAttribPointer(
-                    attribLocation + idx,
-                    size,
-                    type,
-                    normalize,
-                    stride,
-                    offset
-                )
-            })
-
         let bufferView = gltf.bufferViews[accessor.bufferView]
 
         let buffer = gltf.buffers[bufferView.buffer]
@@ -85,6 +61,49 @@ export let createMesh = (
                 .buffer,
             gl.STATIC_DRAW
         )
+        gl.bindBuffer(
+            gl.ARRAY_BUFFER,
+            null
+        )
+        return vbo
+    }
+
+    let bindVertexAttrib = (
+        gl: WebGL2RenderingContext,
+        program: WebGLProgram,
+        attribLocationName: string,
+        accessor: gltf_.Accessor,
+        vbo: WebGLBuffer
+    ) => {
+        gl.bindBuffer(
+            gl.ARRAY_BUFFER,
+            vbo
+        )
+
+        let attribLocation = gl.getAttribLocation(program, attribLocationName)
+
+        let type = accessor
+            .componentType
+
+        let normalize = accessor
+            .normalized
+
+        let stride = 0
+        let offset = 0
+
+        type2sizes[accessor.type]
+            .forEach((size, idx) => {
+                gl.enableVertexAttribArray(attribLocation + idx)
+                gl.vertexAttribPointer(
+                    attribLocation + idx,
+                    size,
+                    type,
+                    normalize,
+                    stride,
+                    offset
+                )
+            })
+
         gl.bindBuffer(
             gl.ARRAY_BUFFER,
             null
@@ -140,16 +159,27 @@ export let createMesh = (
         .map(primitive => {
             return {
                 vao: (() => {
-                    let vao = gl.createVertexArray()
-                    gl.bindVertexArray(vao)
-
-                    Object.keys(primitive.attributes)
-                        .forEach(attributeName => {
-                            bindVBO(
+                    let vbos = Object.keys(primitive.attributes)
+                        .map(attributeName => {
+                            return bindVBO(
                                 gl,
                                 program,
                                 attributeName,
                                 gltf.accessors[primitive.attributes[attributeName]]
+                            )
+                        })
+
+                    let vao = gl.createVertexArray()
+                    gl.bindVertexArray(vao)
+
+                    Object.keys(primitive.attributes)
+                        .forEach((attributeName, idx) => {
+                            bindVertexAttrib(
+                                gl,
+                                program,
+                                attributeName,
+                                gltf.accessors[primitive.attributes[attributeName]],
+                                vbos[idx]
                             )
                         })
 
