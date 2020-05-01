@@ -104,10 +104,6 @@ export let createMesh = (
                 )
             })
 
-        gl.bindBuffer(
-            gl.ARRAY_BUFFER,
-            null
-        )
         return vbo
     }
 
@@ -145,10 +141,10 @@ export let createMesh = (
             gl.STATIC_DRAW
         )
 
-        gl.bindBuffer(
-            gl.ELEMENT_ARRAY_BUFFER,
-            null
-        )
+        // gl.bindBuffer(
+        //     gl.ELEMENT_ARRAY_BUFFER,
+        //     null
+        // )
         return vbo
     }
 
@@ -182,14 +178,14 @@ export let createMesh = (
                                 vbos[idx]
                             )
                         })
+                    bindIndex(
+                        gl,
+                        gltf.accessors[primitive.indices]
+                    )
 
                     gl.bindVertexArray(null)
                     return vao
                 })(),
-                index: bindIndex(
-                    gl,
-                    gltf.accessors[primitive.indices]
-                ),
                 posture: glm.mat4.create()
             }
 

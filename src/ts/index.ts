@@ -52,10 +52,6 @@ gl.clear(gl.COLOR_BUFFER_BIT)
             requestAnimationFrame(loop)
 
             gl.bindVertexArray(mesh[0].vao)
-            gl.bindBuffer(
-                gl.ELEMENT_ARRAY_BUFFER,
-                mesh[0].index
-            )
 
             let fieldOfView = 45 * Math.PI / 180 // in radians
             let aspect = gl.canvas.width / gl.canvas.height
